@@ -1,0 +1,2 @@
+graft tlopo
+global-exclude *.py[co]
