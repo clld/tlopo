@@ -7,6 +7,10 @@
 
 <h2>${_('Parameter')} ${ctx.name}</h2>
 
+% if ctx.note:
+<blockquote>${ctx.note}</blockquote>
+% endif
+
 % if ctx.description:
 <p>${ctx.description}</p>
 % endif

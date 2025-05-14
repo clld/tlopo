@@ -1,0 +1,44 @@
+# English translations for PROJECT.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-05-14 13:19+0200\n"
+"PO-Revision-Date: 2025-05-14 13:18+0200\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: tlopo/__init__.py:12
+msgid "Parameter"
+msgstr "Reconstruction"
+
+#: tlopo/__init__.py:13
+msgid "Parameters"
+msgstr "Reconstructions"
+
+#: tlopo/__init__.py:14
+msgid "Contribution"
+msgstr "Chapter"
+
+#: tlopo/__init__.py:15
+msgid "Contributions"
+msgstr "Chapters"
+
+#: tlopo/__init__.py:16
+msgid "Value"
+msgstr "Form"
+
+#: tlopo/__init__.py:17
+msgid "Values"
+msgstr "Forms"
+

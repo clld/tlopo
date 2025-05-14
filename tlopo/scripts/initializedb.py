@@ -14,6 +14,10 @@ from clld.lib import bibtex
 import tlopo
 from tlopo import models
 
+
+NON_OCEANIC = "WMP CMP Fma IJ NA".split()
+
+
 def main(args):
 
     data = Data()
@@ -37,17 +41,25 @@ def main(args):
     #ID,semantics,Volume,chapter
     chapter_md = {r['ID']: r for r in reader(args.cldf.directory / 'semantics.csv', dicts=True)}
 
-    for lang in args.cldf.iter_rows('languages.csv', 'ID', 'Name', 'Note_name', 'Latitude', 'Longitude'): #'Subgroup', 'Glottocode', 'Note_name', 'Name2', 'Latitude', 'Longitude'):
-        data.add(
-            common.Language,
-            lang['ID'],
-            id=lang['ID'],
-            name=lang['Name'],
-            latitude=lang['Latitude'],
-            longitude=lang['Longitude'],
-            #glottocode=lang['Glottocode']
-            )
+    langs = {gr: list(rows) for gr, rows in itertools.groupby(
+        sorted(args.cldf.iter_rows('languages.csv'), key=lambda r: r['Subgroup']),
+        lambda r: r['Subgroup']
+    )}
+    colors = qualitative_colors(len(langs))
 
+    for (gr, langs), color in zip(langs.items(), colors):
+        for lang in langs:
+            data.add(
+                models.Languoid,
+                lang['ID'],
+                id=lang['ID'],
+                name=lang['Name'],
+                latitude=lang['Latitude'],
+                longitude=lang['Longitude'],
+                group=gr,
+                icon=color.replace('#', 't' if gr in NON_OCEANIC else 'c'),
+                #glottocode=lang['Glottocode']
+            )
 
     for rec in bibtex.Database.from_file(args.cldf.bibpath, lowercase=True):
         data.add(common.Source, rec.id, _obj=bibtex2source(rec))
@@ -68,15 +80,16 @@ def main(args):
             name = '{} {}'.format(cogset['Reconstruction'], reconstructions[cogset['Reconstruction']] + 1)
         else:
             name = cogset['Reconstruction']
+        name += " '{}'".format(cogset['Gloss'])
         reconstructions.update([cogset['Reconstruction']])
         data.add(        
             models.Cognateset,
             cogset['ID'],
             id=cogset['ID'],
             name=name,
-            gloss=cogset['Gloss'],
             chapter=chapter,
-            description=cogset['Description']
+            description=cogset['Description'],
+            note=cogset['Notes'],
         )
 
     for (cogid, lid), forms in itertools.groupby(
@@ -93,12 +106,13 @@ def main(args):
             common.ValueSet,
             vsid,
             id=vsid,
-            language=data['Language'][lid],
+            language=data['Languoid'][lid],
             parameter=data['Cognateset'][cogid],
             contribution=chapter,
         )
         for form in forms:
-            data.add(
+
+            w = data.add(
                 models.Word,
                 form['ID'],
                 valueset=vs,
@@ -109,6 +123,8 @@ def main(args):
             #source=data['Source'][''.join(form['Source'])] if form['Source'] else None
             #source=data['Source'][''.join(form['Source'])]
             )
+            for src in form['Source']:
+                DBSession.add(models.WordSource(word=w, source=data['Source'][Sources.parse(src)[0]]))
 
 
 

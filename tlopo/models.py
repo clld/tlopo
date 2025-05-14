@@ -21,12 +21,17 @@ from clld.db.models import common, Language, HasSourceNotNullMixin
 #-----------------------------------------------------------------------------
 
 
+@implementer(interfaces.ILanguage)
+class Languoid(CustomModelMixin, common.Language):
+    pk = Column(Integer, ForeignKey('language.pk'), primary_key=True)
+    group = Column(Unicode)
+    icon = Column(Unicode)
+
 
 @implementer(interfaces.IParameter)
 class Cognateset(CustomModelMixin, common.Parameter):
     pk = Column(Integer, ForeignKey('parameter.pk'), primary_key=True)
-    gloss = Column(Unicode)
-    reconstruction = Column(Unicode)
+    note = Column(Unicode)
     chapter_pk = Column(Integer, ForeignKey('contribution.pk'))
     chapter = relationship(common.Contribution, backref="cognatesets")
 
