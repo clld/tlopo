@@ -4,8 +4,11 @@
 <%block name="title">${_('Parameter')} ${ctx.name}</%block>
 
 
+<h2>${u.markdown(ctx.name)|n}</h2>
 
-<h2>${_('Parameter')} ${ctx.name}</h2>
+<p>
+Presented in chapter ${h.link(req, ctx.chapter, url_kw=dict(_anchor=ctx.fragment))}.
+</p>
 
 % if ctx.note:
 <blockquote>${ctx.note}</blockquote>
@@ -21,3 +24,9 @@ ${(map_ or request.map).render()}
 % endif
 
 ${request.get_datatable('values', h.models.Value, parameter=ctx).render()}
+
+<%block name="javascript">
+% if ctx.taxon_assocs:
+    var taxa = ${u.json.dumps({t.taxon.name: t.taxon.id for t in ctx.taxon_assocs})|n};
+% endif
+</%block>

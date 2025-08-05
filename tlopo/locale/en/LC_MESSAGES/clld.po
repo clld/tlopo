@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-05-14 13:19+0200\n"
+"POT-Creation-Date: 2025-08-05 18:01+0200\n"
 "PO-Revision-Date: 2025-05-14 13:18+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -18,27 +18,37 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
-#: tlopo/__init__.py:12
-msgid "Parameter"
-msgstr "Reconstruction"
-
 #: tlopo/__init__.py:13
-msgid "Parameters"
-msgstr "Reconstructions"
+msgid "Parameter"
+msgstr "Cognate set"
 
 #: tlopo/__init__.py:14
+msgid "Parameters"
+msgstr "Cognate sets"
+
+#: tlopo/__init__.py:15
 msgid "Contribution"
 msgstr "Chapter"
 
-#: tlopo/__init__.py:15
+#: tlopo/__init__.py:16
 msgid "Contributions"
 msgstr "Chapters"
 
-#: tlopo/__init__.py:16
+#: tlopo/__init__.py:17
 msgid "Value"
+msgstr "Cognate"
+
+#: tlopo/__init__.py:18
+msgid "Values"
+msgstr "Cognates"
+
+#: tlopo/__init__.py:19
+msgid "Unit"
 msgstr "Form"
 
-#: tlopo/__init__.py:17
-msgid "Values"
+#: tlopo/__init__.py:20
+msgid "Units"
 msgstr "Forms"
 
+msgid "Taxons"
+msgstr "Taxa"
