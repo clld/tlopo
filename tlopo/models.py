@@ -1,4 +1,3 @@
-from agate.table import order_by
 from zope.interface import implementer
 from sqlalchemy import (
     Column,
