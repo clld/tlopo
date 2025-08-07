@@ -146,14 +146,21 @@ def main(args):
             variants=' {} '.format(' '.join(variants(row['Value']))),
         )
         for grow, glossid in glosses.get(row['ID'], []):
-            DBSession.add(
-                models.HasGloss(  # FIXME: POS, comment, etc
-                    id=grow['ID'],
-                    unit=w,
-                    pos=grow['Part_Of_Speech'],
-                    name=grow['Name'],
-                    unitparameter=data['Gloss'][glossid]),
+            g = data.add(
+                models.HasGloss, grow['ID'],  # FIXME: POS, comment, etc
+                id=grow['ID'],
+                unit=w,
+                pos=grow['Part_Of_Speech'],
+                name=grow['Name'],
+                unitparameter=data['Gloss'][glossid],
             )
+            for ref in grow['Source']:
+                sid, pages = Sources.parse(ref)
+                DBSession.add(models.GlossReference(
+                    key=sid,
+                    description=pages,
+                    hasgloss=g,
+                    source=data['Source'][sid]))
 
     for fid, tid in w2t:
         DBSession.add(models.WordTaxon(word=data['Word'][fid], taxon=data['Taxon'][tid]))
@@ -192,7 +199,10 @@ def main(args):
                     valueset=vs,
                     word=data['Word'][fid],
                     ord=row['Form_IDs'].index(fid),
-                    jsondata={'glosses': [gid for lgid, gid in glosses[fid] if lgid['ID'] in row['Gloss_IDs']]}
+                    jsondata={
+                        'glosses': [gid for lgid, gid in glosses[fid] if lgid['ID'] in row['Gloss_IDs']],
+                        'hasglosses': [r['ID'] for r, _ in glosses[fid] if r['ID'] in row['Gloss_IDs']],
+                    }
                 ))
 
     # Now add WordChapter based on cf.csv and cognatesetreference.csv.

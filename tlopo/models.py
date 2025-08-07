@@ -139,6 +139,13 @@ class HasGloss(CustomModelMixin, common.UnitValue):
     pos = Column(Unicode)
 
 
+class GlossReference(Base, HasSourceNotNullMixin):
+    __table_args__ = (UniqueConstraint('unitvalue_pk', 'source_pk', 'description'),)
+
+    unitvalue_pk = Column(Integer, ForeignKey('unitvalue.pk'), nullable=False)
+    hasgloss = relationship(HasGloss, innerjoin=True, backref="references")
+
+
 class WordTaxon(Base):
     #__table_args__ = (UniqueConstraint('unit_pk', 'contribution_pk', 'fragment'),)
     unit_pk = Column(Integer, ForeignKey('unit.pk'), nullable=False)

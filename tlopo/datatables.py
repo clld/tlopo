@@ -105,13 +105,48 @@ class GroupCol(Col):
         return models.Cognate.ord
 
 
+class FullGlossCol(Col):
+    __kw__ = dict(bSortable=False)
+
+    def search(self, qs):
+        return icontains(models.Word.description, qs)
+
+    def format(self, item):
+        res = []
+        for g in item.word.unitvalues:
+            if g.id in item.jsondata['hasglosses']:
+                if res:
+                    res.append('; ')
+                if g.pos:
+                    res.append('({}) '.format(g.pos))
+                if g.name:
+                    res.append(HTML.span(g.name, class_='gloss'))
+                i = -1
+                for i, ref in enumerate(g.references):
+                    if i == 0:
+                        res.append(' (')
+                    else:
+                        res.append(', ')
+                    res.append(HTML.a(
+                        ref.source.name,
+                        title='{}. {}'.format(ref.source.name, ref.source.description),
+                        href=self.dt.req.route_url('source', id=ref.key)))
+                    if ref.description:
+                        res.append(': ')
+                        res.append(ref.description)
+                if i >= 0:
+                    res.append(')')
+        return HTML.div(*res)
+
+
 class Cognates(datatables.Values):
     def base_query(self, query):
         query = query.join(common.ValueSet).options(joinedload(common.Value.valueset))
-        query = query.join(models.Word).options(joinedload(models.Cognate.word))
+        query = query.join(common.Unit).options(joinedload(models.Cognate.word))
         query = query.join(models.Languoid)
 
         if self.parameter:
+            query = query.options(joinedload(models.Cognate.word, common.Unit.unitvalues))
             return query.filter(common.ValueSet.parameter_pk == self.parameter.pk)
 
         return query
@@ -123,7 +158,7 @@ class Cognates(datatables.Values):
                 GroupCol(self, 'group', get_object=lambda i: i.word.language),
                 LinkCol(self, 'language', model_col=common.Language.name, get_object=lambda i: i.word.language),
                 FormCol(self, 'form', get_object=lambda i: i.word),
-                GlossCol(self, 'gloss', model_col=common.Unit.description, get_object=lambda i: i.word),
+                FullGlossCol(self, 'gloss'),
                 LinkToMapCol(self, 'map', get_object=lambda i: i.word.language),
             ]
         return [
