@@ -5,3 +5,4 @@ td.gloss:after {content: '’'}
 a.gbif img {height: 1.2em; width: 1.2em}
 table.igt td {white-space: nowrap}
 table.igt caption {caption-side: bottom; text-align: left; padding-top: 10px;}
+.minimal-width {width: 5em !important;}

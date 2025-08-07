@@ -5,7 +5,7 @@ from clld.web import datatables
 from clld.web.datatables.base import LinkCol, Col, IdCol, RefsCol, LinkToMapCol, DataTable, DetailsRowLinkCol
 from clld.web.datatables.contribution import ContributorsCol
 from clld.db.models import common
-from clld.db.util import icontains, get_distinct_values
+from clld.db.util import icontains, contains, get_distinct_values
 from clld.web.util.helpers import map_marker_img, icon, button, link
 from clld.web.util.htmllib import HTML
 
@@ -145,6 +145,13 @@ class ProtoCol(Col):
 
 
 class FormCol(LinkCol):
+    __kw__ = dict(
+        sDescription="Search for forms by matching substrings. Note that theleading * of "
+                     "protoforms is not considered here. You can specify matches at the "
+                     "start of a form by prefixing the search term with '^' and matches "
+                     "at the end by suffixing with '$'. An underscore '_' can be used as "
+                     "one-letter wildcard. So '^t_ma$' will match 'tuma' and 'tama'.")
+
     def get_attrs(self, item):
         item = self.get_obj(item)
         return {'label': HTML.i(('*' if item.language.is_proto else '') + item.name)}
@@ -168,6 +175,23 @@ class CognatesetsCol(Col):
                 cog.valueset.parameter,
                 label=cog.valueset.parameter.shorttitle)) for cog in item.cognates],
             **{'class': 'inline'})
+
+
+class VariantsCol(Col):
+    __kw__ = dict(
+        bSortable=False,
+        sTitle='Variants',
+        sClass="minimal-width",
+        sDescription="This column allows searchin for variants of a form in a simple way. "
+                     "I.e. '[g,k]opu' can be searched as 'gopu' or 'kopu'. To specify matches "
+                     "at the start or end of a form, just append space accordingly.",
+    )
+
+    def search(self, qs):
+        return contains(models.Word.variants, qs)
+
+    def format(self, item):
+        return "←"
 
 
 class Words(datatables.Units):
@@ -201,6 +225,7 @@ class Words(datatables.Units):
             ProtoCol(self, 'proto', model_col=models.Languoid.is_proto),
             LanguageCol(self, 'language', get_object=lambda x: x.language),
             FormCol(self, 'name', sTitle='Form'),
+            VariantsCol(self, 'variant'),
             GlossCol(self, 'description', sTitle='Gloss'),
             #LinkCol(self, 'source', get_object=lambda x: x.source),
         ]

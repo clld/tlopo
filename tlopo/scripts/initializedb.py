@@ -20,6 +20,8 @@ NON_OCEANIC = "WMP CMP Fma IJ NA".split()
 
 
 def main(args):
+    from pytlopo.util import variants
+
     data = Data()
     ds = data.add(
         common.Dataset,
@@ -141,6 +143,7 @@ def main(args):
             name=row['Value'],
             description='; '.join(g['Name'] for g, _ in glosses.get(row['ID'], []) if g['Name']),
             language=data['Languoid'][row['Language_ID']],
+            variants=' {} '.format(' '.join(variants(row['Value']))),
         )
         for grow, glossid in glosses.get(row['ID'], []):
             DBSession.add(

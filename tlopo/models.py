@@ -125,6 +125,7 @@ class Cognate(CustomModelMixin, common.Value):
 @implementer(interfaces.IUnit)
 class Word(CustomModelMixin, common.Unit):
     pk = Column(Integer, ForeignKey('unit.pk'), primary_key=True)
+    variants = Column(Unicode)
 
 
 @implementer(interfaces.IUnitParameter)
