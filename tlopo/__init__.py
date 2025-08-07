@@ -1,9 +1,12 @@
 import collections
 
 from pyramid.config import Configurator
-from clld.interfaces import IMapMarker, IValueSet, IValue, IDomainElement, ILanguage, IUnit
+from clld.interfaces import IMapMarker, IValueSet, IValue, IDomainElement, ILanguage, IUnit, ICtxFactoryQuery
 from clld.web.icon import MapMarker
+from clld.web.app import CtxFactoryQuery
+from clld.db.models import common
 from clldutils.svg import pie, icon, data_url
+from sqlalchemy.orm import joinedload
 
 # we must make sure custom models are known at database initialization!
 from tlopo import models
@@ -18,6 +21,13 @@ _('Value')
 _('Values')
 _('Unit')
 _('Units')
+
+
+class TlopoCtxFactoryQuery(CtxFactoryQuery):
+    def refined_query(self, query, model, req):
+        if model == common.Contribution:
+            return query.options(joinedload(models.Chapter.contributor_assocs))
+        return query
 
 
 class LanguageByGroupMapMarker(MapMarker):
@@ -39,7 +49,14 @@ def main(global_config, **settings):
     """
     config = Configurator(settings=settings)
     config.include('clld.web.app')
-    config.registry.registerUtility(LanguageByGroupMapMarker(), IMapMarker)
+
+    for utility, interface in [
+        (TlopoCtxFactoryQuery(), ICtxFactoryQuery),
+        (LanguageByGroupMapMarker(), IMapMarker),
+    ]:
+        config.registry.registerUtility(utility, interface)
+
+
     config.register_resource('taxon', models.Taxon, ITaxon, with_index=True)
     config.include('clldmpg')
 

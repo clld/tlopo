@@ -60,7 +60,7 @@ class TaxonChapter(Base):
         innerjoin=True,
         backref=backref("chapter_assocs", order_by='TaxonChapter.contribution_pk'))
     contribution_pk = Column(Integer, ForeignKey('contribution.pk'), nullable=False)
-    chapter = relationship(Chapter, innerjoin=True)
+    chapter = relationship(Chapter, innerjoin=True, backref='taxa')
     fragment = Column(Unicode)
 
     @property
