@@ -1,5 +1,6 @@
 import itertools
 import collections
+import urllib.parse
 
 from csvw.dsv import reader
 from pycldf import Sources
@@ -50,8 +51,17 @@ def main(args):
                 seen.add(cid)
             contribs[chapter['ID']].append(cid)
 
+    urls = collections.Counter()
     for rec in bibtex.Database.from_file(args.cldf.bibpath, lowercase=True):
-        data.add(common.Source, rec.id, _obj=bibtex2source(rec))
+        for url in rec.get('url', '').split():
+            urls.update([urllib.parse.urlparse(url).netloc])
+        src = data.add(models.Ref, rec.id, _obj=bibtex2source(rec, cls=models.Ref))
+        src.name = rec['key']
+        src.doi = rec.get('doi')
+        if src.doi:
+            src.url = ' '.join((src.url or '').split() + ['https://doi.org/' + src.doi])
+        src.with_url = bool(src.url)
+        src.jsondata = {'sections': []}
 
     langs = {gr: list(rows) for gr, rows in itertools.groupby(
         sorted(args.cldf.iter_rows('languages.csv'), key=lambda r: r['Group'] or ''),
@@ -87,12 +97,16 @@ def main(args):
                 'chapter{}.html'.format(row['ID'].split('-')[-1])).read_text(encoding='utf8'),
             volume_num=row['Volume_Number'],
             volume=row['Volume'],
-            jsondata=dict(toc=row['Table_Of_Contents']),
+            jsondata=dict(toc=row['Table_Of_Contents'], refs=row['Source']),
         )
         assert len(set(contribs[row['ID']])) == len(contribs[row['ID']]), contribs[row['ID']]
         for i, cid in enumerate(contribs[row['ID']]):
             DBSession.add(common.ContributionContributor(
                 contribution=chap, contributor=data['Contributor'][cid], ord=i))
+        secs = {s[1]: s[2] for s in row['Table_Of_Contents']}
+        for sid, sections in row['Source_To_Sections'].items():
+            for sec in sections:
+                data['Ref'][sid].jsondata['sections'].append((row['ID'], sec, secs[sec]))
 
     for row in args.cldf.iter_rows('taxa.csv'):
         t = data.add(
@@ -160,7 +174,7 @@ def main(args):
                     key=sid,
                     description=pages,
                     hasgloss=g,
-                    source=data['Source'][sid]))
+                    source=data['Ref'][sid]))
 
     for fid, tid in w2t:
         DBSession.add(models.WordTaxon(word=data['Word'][fid], taxon=data['Taxon'][tid]))

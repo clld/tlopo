@@ -4,6 +4,7 @@ from sqlalchemy.orm import joinedload
 from clld.web import datatables
 from clld.web.datatables.base import LinkCol, Col, IdCol, RefsCol, LinkToMapCol, DataTable, DetailsRowLinkCol
 from clld.web.datatables.contribution import ContributorsCol
+from clld.web.datatables.source import Sources, TypeCol
 from clld.db.models import common
 from clld.db.util import icontains, contains, get_distinct_values
 from clld.web.util.helpers import map_marker_img, icon, button, link
@@ -11,6 +12,32 @@ from clld.web.util.htmllib import HTML
 
 
 from tlopo import models
+
+
+class DOICol(Col):
+    def format(self, item):
+        if item.doi:
+            return HTML.a(
+                HTML.img(
+                    width=25, height=25, src=self.dt.req.static_url('tlopo:static/DOI_logo.svg')),
+                href='https://doi.org/' + item.doi)
+        return ''
+
+
+class Refs(Sources):
+    def col_defs(self):
+        return [
+            DetailsRowLinkCol(self, 'd'),
+            LinkCol(self, 'name'),
+            Col(self, 'author'),
+            Col(self, 'year'),
+            Col(self, 'description', sTitle='Title', format=lambda i: HTML.span(i.description)),
+            DOICol(self, 'doi', model_col=models.Ref.doi),
+            Col(self, 'url', model_col=models.Ref.with_url),
+            TypeCol(self, 'bibtex_type'),
+        ]
+
+
 
 
 class VolCol(Col):
@@ -286,3 +313,4 @@ def includeme(config):
     config.register_datatable('units', Words)
     config.register_datatable('languages', Languages)
     config.register_datatable('parameters', Cognatesets)
+    config.register_datatable('sources', Refs)

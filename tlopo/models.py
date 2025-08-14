@@ -1,3 +1,6 @@
+import collections
+import itertools
+
 from zope.interface import implementer
 from sqlalchemy import (
     Column,
@@ -15,10 +18,19 @@ from clld import interfaces
 from clld.db.meta import Base, CustomModelMixin
 from clld.db.models import common, HasSourceNotNullMixin, IdNameDescriptionMixin
 from clld.web.util.helpers import link
-from clld.web.util.htmllib import HTML
+from clld.web.util.htmllib import HTML, literal
 from markdown import markdown
 
 from tlopo.interfaces import ITaxon
+
+
+def md(t):
+    res = markdown(t)
+    if res.startswith('<p>'):
+        res = res[3:]
+    if res.endswith('</p>'):
+        res = res[:-4]
+    return res
 
 
 #-----------------------------------------------------------------------------
@@ -51,6 +63,28 @@ class Chapter(CustomModelMixin, common.Contribution):
     volume_num = Column(Integer)
     volume = Column(Unicode)
 
+    def toc(self):
+        def html(i, title, children):
+            se = [HTML.a(literal(md(title)), href='#' + i)]
+            if children:
+                se.append(HTML.ol(*[html('-'.join([i, ii]), c[0], c[1]) for ii, c in children.items()]))
+            return HTML.li(*se)
+
+        sections = ('', collections.OrderedDict())
+        for level, sid, title in self.jsondata['toc']:
+            keys = sid.split('-')
+            tk, keys = '-'.join(keys[:2]), keys[2:]
+            keys = [tk] + keys
+            assert len(keys) == level
+
+            node = sections
+            for key in keys[:-1]:
+                node = node[1][key]
+
+            node[1][keys[-1]] = (title, collections.OrderedDict())
+
+        return HTML.ol(*[html(i, c[0], c[1]) for i, c in sections[1].items()])
+
 
 class TaxonChapter(Base):
     #__table_args__ = (UniqueConstraint('unit_pk', 'contribution_pk', 'fragment'),)
@@ -68,6 +102,22 @@ class TaxonChapter(Base):
         for _, secid, title in self.chapter.jsondata['toc']:
             if secid == self.fragment:
                 return HTML.literal(markdown(title))
+
+
+@implementer(interfaces.ISource)
+class Ref(CustomModelMixin, common.Source):
+    pk = Column(Integer, ForeignKey('source.pk'), primary_key=True)
+    doi = Column(Unicode)
+    with_url = Column(Boolean)
+
+    @property
+    def grouped_sections(self):
+        def key(row):
+            return tuple(int(i) for i in row[0].split('-') + row[1].replace('s-', '').split('-'))
+
+        return [
+            (cid, [r[1:] for r in rows]) for cid, rows in
+            itertools.groupby(sorted(self.jsondata['sections'], key=key), lambda r: r[0])]
 
 
 @implementer(interfaces.ILanguage)

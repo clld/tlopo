@@ -361,3 +361,18 @@ span.smallcaps {font-variant: all-small-caps}
 % endfor
 
 ${text|n}
+
+<%def name="sidebar()">
+    <div class="accordion" id="sidebar-accordion">
+        <%util:accordion_group eid="acc-map" parent="sidebar-accordion" title="${_('Contents')}" open="${True}">
+        ${ctx.toc()|n}
+        </%util:accordion_group>
+        <%util:accordion_group eid="sources" parent="sidebar-accordion" title="${_('References')}">
+        <ul>
+            % for ref in refs:
+            <li class="refs">${h.link(req, ref)} “${ref.description}”</li>
+            % endfor
+        </ul>
+        </%util:accordion_group>
+    </div>
+</%def>
