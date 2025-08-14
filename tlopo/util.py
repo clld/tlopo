@@ -9,6 +9,9 @@ from clld.web.util.helpers import link
 from clld.web.util.htmllib import HTML
 from clld.db.models import common
 from clld.db.meta import DBSession
+from clld.db.util import icontains
+
+from tlopo import models
 
 assert json and markdown and link
 
@@ -50,6 +53,13 @@ def src_links(req, src):
 
     links = [li(u) for u in (src.url or '').split()]
     return HTML.ul(*links, **{'class': 'unstyled'})
+
+
+def dataset_detail_html(context=None, request=None, **kw):
+    return {'volumes': DBSession.query(common.Contribution)
+        .filter(icontains(common.Contribution.name, 'introduction'))
+        .order_by(models.Chapter.volume_num).all()}
+
 
 def source_detail_html(context=None, request=None, **kw):
     return {'chapters': {c.id: c for c in DBSession.query(common.Contribution)}}

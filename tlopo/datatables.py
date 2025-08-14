@@ -49,9 +49,14 @@ class VolCol(Col):
 
    
 class Chapters(datatables.Contributions):
+    def get_options(self):
+        opts = super(datatables.Contributions, self).get_options()
+        opts['aaSorting'] = [[1, 'asc']]
+        return opts
+
     def col_defs(self):
         return [
-            VolCol(self, 'vol', model_col=models.Chapter.volume),
+            VolCol(self, 'vol', model_col=models.Chapter.volume, choices=get_distinct_values(models.Chapter.volume)),
             LinkCol(self, 'name'),
             ContributorsCol(self, 'contributor'),
         ]

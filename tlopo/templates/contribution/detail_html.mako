@@ -365,6 +365,7 @@ ${text|n}
 <%def name="sidebar()">
     <div class="accordion" id="sidebar-accordion">
         <%util:accordion_group eid="acc-map" parent="sidebar-accordion" title="${_('Contents')}" open="${True}">
+        <div class="alert alert-info">The lexicon of Proto Oceanic: ${ctx.volume_num} ${ctx.volume}</div>
         % if ctx.prev:
         <a title="${ctx.prev.name}" href="${req.route_url('contribution', id=ctx.prev.id)}"><i class="icon-step-backward"></i></a>
         % endif
