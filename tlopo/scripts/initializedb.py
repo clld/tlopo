@@ -84,6 +84,7 @@ def main(args):
                 #glottocode=lang['Glottocode']
             )
 
+    prev = None
     for row in args.cldf.iter_rows('ContributionTable'):
         chap = data.add(
             models.Chapter,
@@ -99,6 +100,9 @@ def main(args):
             volume=row['Volume'],
             jsondata=dict(toc=row['Table_Of_Contents'], refs=row['Source']),
         )
+        if prev:
+            prev.next = chap
+        prev = chap
         assert len(set(contribs[row['ID']])) == len(contribs[row['ID']]), contribs[row['ID']]
         for i, cid in enumerate(contribs[row['ID']]):
             DBSession.add(common.ContributionContributor(

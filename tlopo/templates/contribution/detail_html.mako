@@ -365,7 +365,22 @@ ${text|n}
 <%def name="sidebar()">
     <div class="accordion" id="sidebar-accordion">
         <%util:accordion_group eid="acc-map" parent="sidebar-accordion" title="${_('Contents')}" open="${True}">
+        % if ctx.prev:
+        <a title="${ctx.prev.name}" href="${req.route_url('contribution', id=ctx.prev.id)}"><i class="icon-step-backward"></i></a>
+        % endif
+        ${_('Contribution')} ${ctx.name}
+        % if ctx.next:
+        <a title="${ctx.next.name}" href="${req.route_url('contribution', id=ctx.next.id)}"><i class="icon-step-forward"></i></a>
+        % endif
+
         ${ctx.toc()|n}
+        </%util:accordion_group>
+        <%util:accordion_group eid="cogsets" parent="sidebar-accordion" title="${_('Cognatesets')}">
+        <ul>
+            % for cs in ctx.cognatesets:
+            <li class="refs"><a href="#${cs.fragment}">${u.md(cs.name)|n}</a></li>
+            % endfor
+        </ul>
         </%util:accordion_group>
         <%util:accordion_group eid="sources" parent="sidebar-accordion" title="${_('References')}">
         <ul>

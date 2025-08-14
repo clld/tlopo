@@ -26,7 +26,9 @@ _('Units')
 class TlopoCtxFactoryQuery(CtxFactoryQuery):
     def refined_query(self, query, model, req):
         if model == common.Contribution:
-            return query.options(joinedload(models.Chapter.contributor_assocs))
+            return query.options(
+                joinedload(models.Chapter.contributor_assocs),
+                joinedload(models.Chapter.cognatesets))
         return query
 
 

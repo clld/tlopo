@@ -1,7 +1,6 @@
 import re
 import html
 import json
-import pathlib
 import urllib.parse
 
 from markdown import markdown
@@ -12,6 +11,15 @@ from clld.db.models import common
 from clld.db.meta import DBSession
 
 assert json and markdown and link
+
+
+def md(t):
+    res = markdown(t)
+    if res.startswith('<p>'):
+        res = res[3:]
+    if res.endswith('</p>'):
+        res = res[:-4]
+    return res
 
 
 def src_links(req, src):

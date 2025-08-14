@@ -62,6 +62,8 @@ class Chapter(CustomModelMixin, common.Contribution):
     pk = Column(Integer, ForeignKey('contribution.pk'), primary_key=True)
     volume_num = Column(Integer)
     volume = Column(Unicode)
+    next_pk = Column(Integer, ForeignKey('chapter.pk'))
+    next = relationship('Chapter', backref=backref('prev', uselist=False), remote_side=[pk], foreign_keys=[next_pk])
 
     def toc(self):
         def html(i, title, children):
