@@ -69,23 +69,10 @@ class Chapter(CustomModelMixin, common.Contribution):
         def html(i, title, children):
             se = [HTML.a(literal(md(title)), href='#' + i)]
             if children:
-                se.append(HTML.ol(*[html('-'.join([i, ii]), c[0], c[1]) for ii, c in children.items()]))
+                se.append(HTML.ol(*[html(ii, t, c) for ii, t, c in children]))
             return HTML.li(*se)
 
-        sections = ('', collections.OrderedDict())
-        for level, sid, title in self.jsondata['toc']:
-            keys = sid.split('-')
-            tk, keys = '-'.join(keys[:2]), keys[2:]
-            keys = [tk] + keys
-            assert len(keys) == level
-
-            node = sections
-            for key in keys[:-1]:
-                node = node[1][key]
-
-            node[1][keys[-1]] = (title, collections.OrderedDict())
-
-        return HTML.ol(*[html(i, c[0], c[1]) for i, c in sections[1].items()])
+        return HTML.ol(*[html(i, t, c) for i, t, c in self.jsondata['toc']])
 
 
 class TaxonChapter(Base):

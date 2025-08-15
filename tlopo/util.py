@@ -16,13 +16,7 @@ from tlopo import models
 assert json and markdown and link
 
 
-def md(t):
-    res = markdown(t)
-    if res.startswith('<p>'):
-        res = res[3:]
-    if res.endswith('</p>'):
-        res = res[:-4]
-    return res
+md = models.md
 
 
 def src_links(req, src):

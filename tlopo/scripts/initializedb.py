@@ -107,7 +107,17 @@ def main(args):
         for i, cid in enumerate(contribs[row['ID']]):
             DBSession.add(common.ContributionContributor(
                 contribution=chap, contributor=data['Contributor'][cid], ord=i))
-        secs = {s[1]: s[2] for s in row['Table_Of_Contents']}
+
+        secs = {}
+
+        def addsecs(s, t, c):
+            secs[s] = t
+            for ss, tt, cc in c:
+                addsecs(ss, tt, cc)
+
+        for s, t, c in row['Table_Of_Contents']:
+            addsecs(s, t, c)
+
         for sid, sections in row['Source_To_Sections'].items():
             for sec in sections:
                 data['Ref'][sid].jsondata['sections'].append((row['ID'], sec, secs[sec]))

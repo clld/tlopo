@@ -5,8 +5,7 @@
 <h2>${ctx.name}</h2>
 ${ctx.coins(request)|n}
 
-<% bibrec = ctx.bibtex() %>
-<p>${bibrec.text()}</p>
+<div class="alert alert-info">${ctx.bibtex().text()}</div>
 
 <h3>Links</h3>
 ${u.src_links(req, ctx)|n}
@@ -17,42 +16,16 @@ ${u.src_links(req, ctx)|n}
     <li>${chapters[cid].name}
         <ul>
         % for sid, title in sections:
-            <li><a href="${req.route_url('contribution', id=cid, _anchor=sid)}">${title}</a></li>
+            <li><a href="${req.route_url('contribution', id=cid, _anchor=sid)}">${u.md(title)|n}</a></li>
         % endfor
         </ul>
     </li>
     % endfor
 </ul>
 
-<h3>BibTeX</h3>
-<pre>${bibrec}</pre>
-
 <%def name="sidebar()">
-    <% referents, one_open = context.get('referents', {}), False %>
-    <div class="accordion" id="sidebar-accordion">
-    % if referents.get('language'):
-        <%util:accordion_group eid="acc-l" parent="sidebar-accordion" title="${_('Languages')}" open="${not one_open}">
-            ${util.stacked_links(referents['language'])}
-        </%util:accordion_group>
-        <% one_open = True %>
-    % endif
-    % if referents.get('contribution'):
-        <%util:accordion_group eid="acc-c" parent="sidebar-accordion" title="${_('Contributions')}" open="${not one_open}">
-            ${util.stacked_links(referents['contribution'])}
-        </%util:accordion_group>
-        <% one_open = True %>
-    % endif
-    % if referents.get('valueset'):
-        <%util:accordion_group eid="acc-v" parent="sidebar-accordion" title="${_('ValueSets')}" open="${not one_open}">
-            ${util.stacked_links(referents['valueset'])}
-        </%util:accordion_group>
-        <% one_open = True %>
-    % endif
-    % if referents.get('sentence'):
-        <%util:accordion_group eid="acc-s" parent="sidebar-accordion" title="${_('Sentences')}" open="${not one_open}">
-            ${util.stacked_links(referents['sentence'])}
-        </%util:accordion_group>
-        <% one_open = True %>
-    % endif
-    </div>
+<div class="well">
+<h4>BibTeX</h4>
+<pre>${ctx.bibtex()}</pre>
+</div>
 </%def>
