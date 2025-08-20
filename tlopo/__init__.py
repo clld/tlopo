@@ -10,7 +10,7 @@ from sqlalchemy.orm import joinedload
 
 # we must make sure custom models are known at database initialization!
 from tlopo import models
-from tlopo.interfaces import ITaxon
+from tlopo.interfaces import ITaxon, IRegion
 
 _ = lambda s: s
 _('Parameter')
@@ -50,6 +50,7 @@ def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
     config = Configurator(settings=settings)
+    config.add_route('phylogeny', '/languages/phylogeny')
     config.include('clld.web.app')
 
     for utility, interface in [
@@ -58,9 +59,7 @@ def main(global_config, **settings):
     ]:
         config.registry.registerUtility(utility, interface)
 
-
     config.register_resource('taxon', models.Taxon, ITaxon, with_index=True)
+    config.register_resource('region', models.Region, IRegion, with_index=True)
     config.include('clldmpg')
-
-
     return config.make_wsgi_app()

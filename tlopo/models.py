@@ -21,7 +21,7 @@ from clld.web.util.helpers import link
 from clld.web.util.htmllib import HTML, literal
 from markdown import markdown
 
-from tlopo.interfaces import ITaxon
+from tlopo.interfaces import ITaxon, IRegion
 
 
 def md(t):
@@ -38,6 +38,11 @@ def md(t):
 #-----------------------------------------------------------------------------
 def htmlify(md):
     return HTML.literal(markdown(md.replace('*', '&ast;')))
+
+
+@implementer(IRegion)
+class Region(Base, IdNameDescriptionMixin):
+    pass
 
 
 @implementer(ITaxon)
@@ -115,6 +120,10 @@ class Languoid(CustomModelMixin, common.Language):
     group = Column(Unicode)
     icon = Column(Unicode)
     is_proto = Column(Boolean)
+
+    region_icon = Column(Unicode)
+    region_pk = Column(Integer, ForeignKey('region.pk'))
+    region = relationship(Region, backref="languages")
 
 #
 # cognatesetreference -> Parameter (with self-referential fk for "full" set)

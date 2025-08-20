@@ -3,5 +3,9 @@ from zope.interface import (
 )
 
 
+class IRegion(Interface):
+    """Marker"""
+
+
 class ITaxon(Interface):
     """Marker"""

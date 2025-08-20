@@ -20,6 +20,24 @@ from tlopo import models
 NON_OCEANIC = "WMP CMP Fma IJ NA".split()
 
 
+def bb(region):
+    coords = [(lg.longitude, lg.latitude) for lg in region.languages if lg.latitude]
+    cross_antimeridian = any(lon < 0 for lon, lat in coords)
+    tl = (
+        min(lon for lon, _ in coords if lon > 0),
+        max(lat for _, lat in coords),
+    )
+    br = (
+        360 + max(lon for lon, _ in coords if lon < 0)
+        if cross_antimeridian else max(lon for lon, _ in coords),
+        min(lat for _, lat in coords),
+    )
+    return {
+        'type': 'Polygon',
+        'coordinates': [[list(tl), [br[0], tl[1]], list(br), [tl[0], br[1]], list(tl)]]
+    }
+
+
 def main(args):
     from pytlopo.util import variants
 
@@ -37,8 +55,10 @@ def main(args):
         license="http://creativecommons.org/licenses/by/4.0/",
         jsondata={
             'license_icon': 'cc-by.png',
-            'license_name': 'Creative Commons Attribution 4.0 International License'},
-
+            'license_name': 'Creative Commons Attribution 4.0 International License',
+            'tree': args.cldf.directory.joinpath('tree.nwk').read_text(encoding='utf8'),
+            'tree_description': args.cldf.get_object('TreeTable', 'tree').cldf.description,
+        },
     )
     editors, seen, contribs = ['rossm', 'pawleya', 'osmondm'], set(), collections.defaultdict(list)
     for chapter in args.cldf.iter_rows('ContributionTable'):
@@ -71,6 +91,12 @@ def main(args):
 
     for (gr, langs), color in zip(langs.items(), colors):
         for lang in langs:
+            if lang['Map'] and lang['Map'] not in data['Region']:
+                data.add(
+                    models.Region, lang['Map'],
+                    id=lang['Map'].replace('.', '_'),
+                    name=args.cldf.properties['dc:spatial'][lang['Map']],
+                )
             data.add(
                 models.Languoid,
                 lang['ID'],
@@ -81,6 +107,8 @@ def main(args):
                 group=gr,
                 icon=color.replace('#', 't' if gr in NON_OCEANIC else 'c'),
                 is_proto=lang['Is_Proto'],
+                region=data['Region'].get(lang['Map']),
+                region_icon=lang['Icon'] or None,
                 #glottocode=lang['Glottocode']
             )
 
@@ -258,6 +286,8 @@ def prime_cache(args):
     This procedure should be separate from the db initialization, because
     it will have to be run periodically whenever data has been updated.
     """
+    for region in DBSession.query(models.Region):
+        region.update_jsondata(bbox=bb(region))
 
 
 def cognateset_name(row, data, glosses, names):

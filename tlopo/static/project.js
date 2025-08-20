@@ -1,5 +1,24 @@
 TLOPO = {}
 
+TLOPO.regions_index = function (map) {
+    var layers = {};
+
+    function onEachFeature(feature, layer) {
+        layer.bindTooltip(feature.properties.title);
+        layer.on({click: function () {window.location.href=feature.properties.url}});
+        layers[feature.properties.title] = layer;
+    }
+
+    layer = L.geoJSON(bboxes, {
+        onEachFeature: onEachFeature
+    }).addTo(map.map);
+    map.map.fitBounds(layer.getBounds());
+    L.control.layers(
+        {},
+        layers,
+        {collapsed: false}).addTo(map.map);
+}
+
 TLOPO.map_with_taxa_on_init = function (map) {
     var pixel_ratio = parseInt(window.devicePixelRatio) || 1;
     var layers = {};

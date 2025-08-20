@@ -3,9 +3,10 @@ from sqlalchemy.orm import joinedload
 from clld import interfaces
 from clld.web.adapters.geojson import GeoJsonParameter, GeoJson
 from clld.db.meta import DBSession
+from clldutils.svg import data_url, icon
 
 from tlopo import models
-from tlopo.interfaces import ITaxon
+from tlopo.interfaces import ITaxon, IRegion
 
 
 class GeoJsonCognateset(GeoJsonParameter):
@@ -34,6 +35,16 @@ class GeoJsonTaxon(GeoJson):
         return {'label': word.name, 'description': word.description}
 
 
+class GeoJsonRegion(GeoJson):
+    def featurecollection_properties(self, ctx, req):
+        return {'name': ctx.name, 'description': ctx.description}
+
+    def feature_iterator(self, ctx, req):
+        return ctx.languages
+
+    def feature_properties(self, ctx, req, lang):
+        return {'icon': data_url(icon(lang.region_icon))}
+
 
 def includeme(config):
     config.register_adapter(
@@ -43,4 +54,8 @@ def includeme(config):
     config.register_adapter(
         GeoJsonTaxon,
         ITaxon,
+        name=GeoJson.mimetype)
+    config.register_adapter(
+        GeoJsonRegion,
+        IRegion,
         name=GeoJson.mimetype)

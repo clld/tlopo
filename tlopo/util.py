@@ -10,6 +10,7 @@ from clld.web.util.htmllib import HTML
 from clld.db.models import common
 from clld.db.meta import DBSession
 from clld.db.util import icontains
+from clldutils.svg import data_url, icon
 
 from tlopo import models
 
@@ -53,6 +54,43 @@ def dataset_detail_html(context=None, request=None, **kw):
     return {'volumes': DBSession.query(common.Contribution)
         .filter(icontains(common.Contribution.name, 'introduction'))
         .order_by(models.Chapter.volume_num).all()}
+
+
+def region_index_html(context=None, request=None, **kw):
+    import json
+    return {'geojson': json.dumps(dict(
+        type='FeatureCollection',
+        features=[dict(
+            type='Feature',
+            properties=dict(title=reg.name, url=request.route_url('region', id=reg.id)),
+            geometry=reg.jsondata['bbox']) for reg in context.get_query()]))}
+
+
+def region_detail_html(context=None, request=None, **kw):
+    from newick import loads
+    tree = loads(request.dataset.jsondata['tree'])[0]
+    tree.prune_by_names([l.id for l in context.languages], inverse=True)
+    tree.remove_redundant_nodes(keep_leaf_name=True)
+
+    langs = {l.id: l for l in context.languages}
+
+    def htmlicon(lg):
+        return HTML.img(src=data_url(icon(lg.region_icon)), width=20, height=20)
+
+    def html(node):
+        content = [langs[node.name].name if node.name in langs else HTML.strong(node.comment)]
+        if node.name in langs:
+            content = [htmlicon(langs[node.name])] + content
+        descendants = sorted(node.descendants, key=lambda n: (n.name not in langs, n.name or ''))
+        if descendants:
+            if all(n.name in langs for n in descendants) \
+                    and len(set(langs[n.name].region_icon for n in descendants)) == 1:
+                content = [htmlicon(langs[descendants[0].name])] + content
+            else:
+                content.append(HTML.ul(*[html(n) for n in descendants], style="margin-left: 1em;", class_='unstyled'))
+        return HTML.li(*content)
+
+    return {'tree': HTML.ul(html(tree), class_='unstyled')}
 
 
 def source_detail_html(context=None, request=None, **kw):
