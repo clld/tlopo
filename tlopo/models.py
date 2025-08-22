@@ -120,6 +120,11 @@ class Languoid(CustomModelMixin, common.Language):
     group = Column(Unicode)
     icon = Column(Unicode)
     is_proto = Column(Boolean)
+    glottocode = Column(Unicode)
+    glottolog_name = Column(Unicode)
+    note = Column(Unicode)
+    alternative_names = Column(Unicode)
+    nwords = Column(Integer)
 
     region_icon = Column(Unicode)
     region_pk = Column(Integer, ForeignKey('region.pk'))

@@ -10,14 +10,13 @@ from clld.cliutil import Data, bibtex2source
 from clld.db.meta import DBSession
 from clld.db.models import common
 from clld.lib import bibtex
-
 from nameparser import HumanName
 
 import tlopo
 from tlopo import models
 
 
-NON_OCEANIC = "WMP CMP Fma IJ NA".split()
+NON_OCEANIC = "WMP CMP Fma IJ NA RA CB SHWNG".split()
 
 
 def bb(region):
@@ -97,11 +96,17 @@ def main(args):
                     id=lang['Map'].replace('.', '_'),
                     name=args.cldf.properties['dc:spatial'][lang['Map']],
                 )
+            alt_names, desc = None, None
+            if any(w in (lang['Alternative_Names'] or '') for w in {'Proto', 'Early'}):
+                desc = lang['Alternative_Names']
+            else:
+                alt_names = lang['Alternative_Names']
             data.add(
                 models.Languoid,
                 lang['ID'],
                 id=lang['ID'],
                 name=lang['Name'],
+                description=desc,
                 latitude=lang['Latitude'],
                 longitude=lang['Longitude'],
                 group=gr,
@@ -109,7 +114,10 @@ def main(args):
                 is_proto=lang['Is_Proto'],
                 region=data['Region'].get(lang['Map']),
                 region_icon=lang['Icon'] or None,
-                #glottocode=lang['Glottocode']
+                glottocode=lang['Glottocode'],
+                glottolog_name=lang['Glottolog_Name'],
+                note=lang['Note'],
+                alternative_names=alt_names,
             )
 
     prev = None
@@ -288,6 +296,9 @@ def prime_cache(args):
     """
     for region in DBSession.query(models.Region):
         region.update_jsondata(bbox=bb(region))
+
+    for lang in DBSession.query(models.Languoid):
+        lang.nwords = DBSession.query(common.Unit).filter(common.Unit.language_pk==lang.pk).count()
 
 
 def cognateset_name(row, data, glosses, names):

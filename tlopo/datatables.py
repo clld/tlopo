@@ -71,8 +71,13 @@ class Languages(datatables.Languages):
     def col_defs(self):
         return [
             LinkCol(self, 'name'),
-            LGroupCol(self, 'group', model_col=models.Languoid.is_proto),
+            LGroupCol(
+                self,
+                'group',
+                choices=get_distinct_values(models.Languoid.group),
+                model_col=models.Languoid.group),
             Col(self, 'proto', model_col=models.Languoid.is_proto),
+            Col(self, 'nwords', sTitle='# words', model_col=models.Languoid.nwords),
             Col(self,
                 'latitude',
                 sDescription='<small>The geographic latitude</small>'),

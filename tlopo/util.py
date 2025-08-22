@@ -3,6 +3,7 @@ import html
 import json
 import urllib.parse
 
+from clldutils.html import literal
 from markdown import markdown
 
 from clld.web.util.helpers import link
@@ -10,6 +11,7 @@ from clld.web.util.htmllib import HTML
 from clld.db.models import common
 from clld.db.meta import DBSession
 from clld.db.util import icontains
+from clld.web.util import glottolog
 from clldutils.svg import data_url, icon
 
 from tlopo import models
@@ -18,6 +20,46 @@ assert json and markdown and link
 
 
 md = models.md
+
+
+def gloss(g):
+    return HTML.span(literal(md(g)), class_='gloss')
+
+
+def tree(request, languages, remove_redundant_nodes=True):
+    from newick import loads
+    tree = loads(request.dataset.jsondata['tree'])[0]
+    nodes = {n.name for n in tree.walk() if n.name}
+    if not any(lg.id in nodes for lg in languages):
+        return
+    tree.prune_by_names([lg.id for lg in languages], inverse=True)
+    if remove_redundant_nodes:
+        tree.remove_redundant_nodes(keep_leaf_name=True)
+
+    langs = {
+        l.id: l for l in DBSession.query(common.Language).filter(common.Language.id.in_(nodes))}
+
+    def htmlicon(lg):
+        if lg.region_icon:
+            return HTML.img(src=data_url(icon(lg.region_icon)), width=20, height=20)
+
+    def html(node):
+        content = [
+            (langs[node.name].name if langs[node.name].region_icon else HTML.strong(langs[node.name].name))
+            if node.name in langs else HTML.strong(node.comment)]
+        if node.name in langs:
+            content = [htmlicon(langs[node.name]) or ''] + content
+        descendants = sorted(node.descendants, key=lambda n: (n.name not in langs, n.name or ''))
+        if descendants:
+            if all(n.name in langs for n in descendants) \
+                    and all(langs[n.name].region_icon for n in descendants) \
+                    and len(set(langs[n.name].region_icon for n in descendants)) == 1:
+                content = [htmlicon(langs[descendants[0].name]) or ''] + content
+            else:
+                content.append(HTML.ul(*[html(n) for n in descendants], style="margin-left: 1em;", class_='unstyled'))
+        return HTML.li(*content)
+
+    return HTML.ul(html(tree), class_='unstyled')
 
 
 def src_links(req, src):
@@ -66,35 +108,23 @@ def region_index_html(context=None, request=None, **kw):
             geometry=reg.jsondata['bbox']) for reg in context.get_query()]))}
 
 
+def language_detail_html(context=None, request=None, **kw):
+    return {'tree': tree(request, [context], remove_redundant_nodes=False)}
+
+
 def region_detail_html(context=None, request=None, **kw):
-    from newick import loads
-    tree = loads(request.dataset.jsondata['tree'])[0]
-    tree.prune_by_names([l.id for l in context.languages], inverse=True)
-    tree.remove_redundant_nodes(keep_leaf_name=True)
-
-    langs = {l.id: l for l in context.languages}
-
-    def htmlicon(lg):
-        return HTML.img(src=data_url(icon(lg.region_icon)), width=20, height=20)
-
-    def html(node):
-        content = [langs[node.name].name if node.name in langs else HTML.strong(node.comment)]
-        if node.name in langs:
-            content = [htmlicon(langs[node.name])] + content
-        descendants = sorted(node.descendants, key=lambda n: (n.name not in langs, n.name or ''))
-        if descendants:
-            if all(n.name in langs for n in descendants) \
-                    and len(set(langs[n.name].region_icon for n in descendants)) == 1:
-                content = [htmlicon(langs[descendants[0].name])] + content
-            else:
-                content.append(HTML.ul(*[html(n) for n in descendants], style="margin-left: 1em;", class_='unstyled'))
-        return HTML.li(*content)
-
-    return {'tree': HTML.ul(html(tree), class_='unstyled')}
+    return {'tree': tree(request, context.languages)}
 
 
 def source_detail_html(context=None, request=None, **kw):
-    return {'chapters': {c.id: c for c in DBSession.query(common.Contribution)}}
+    words = DBSession.query(models.Word)\
+        .join(models.HasGloss)\
+        .join(models.Gloss)\
+        .join(models.GlossReference)\
+        .filter(models.GlossReference.source_pk == context.pk).all()
+    return {
+        'words': words,
+        'chapters': {c.id: c for c in DBSession.query(common.Contribution)}}
 
 
 def contribution_detail_html(context=None, request=None, **kw):

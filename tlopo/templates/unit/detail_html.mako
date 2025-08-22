@@ -6,24 +6,6 @@
 <strong style="font-size: x-large">${h.link(req, ctx.language)} <i>${'*' if ctx.language.is_proto else ''}${ctx.name}</i></strong>
 </p>
 
-<ul>
-% for cog in ctx.cognates:
-    <li>
-Referenced in a <a href="${req.route_url('parameter', id=cog.valueset.parameter.id)}">cognateset</a>
-in chapter ${h.link(req, cog.valueset.parameter.chapter, url_kw=dict(_anchor=cog.valueset.parameter.fragment))} with glosses
-% for ga in ctx.unitvalues:
-    % if ga.unitparameter.id in cog.jsondata['glosses']:
-% if ga.pos:
-[${ga.pos}]
-% endif
-${h.link(request, ga.unitparameter)}
-
-    % endif
-% endfor
-    </li>
-% endfor
-</ul>
-
 <h3>Glosses</h3>
 <ul>
     % for value in ctx.unitvalues:
@@ -31,14 +13,41 @@ ${h.link(request, ga.unitparameter)}
         % if value.pos:
             [${value.pos}]
         % endif
-        ${h.link(request, value.unitparameter)}
+        <a href="${req.resource_url(value.unitparameter)}">${u.gloss(value.unitparameter.name)|n}</a>
     </li>
     % endfor
 </ul>
 
 <h3>References</h3>
+
+% for cog in ctx.cognates:
+        % if loop.first:
+<h4>Cognatesets</h4>
 <ul>
+        % endif
+    <li>
+        <a href="${req.resource_url(cog.valueset.parameter)}">${u.md(cog.valueset.parameter.name)|n}</a>
+        with glosses
+        % for ga in ctx.unitvalues:
+        % if ga.unitparameter.id in cog.jsondata['glosses']:
+        % if ga.pos:
+        [${ga.pos}]
+        % endif
+        <a href="${req.resource_url(ga.unitparameter)}">${u.gloss(ga.unitparameter.name)|n}</a>
+        % endif
+        % endfor
+    </li>
+    % if loop.last:
+</ul>
+    % endif
+% endfor
+
+
 % for ref in ctx.chapter_assocs:
+    % if loop.first:
+<h4>Sections</h4>
+<ul>
+    % endif
     <li>
         ${h.link(request, ref.chapter, url_kw=dict(_anchor=ref.fragment))}
         <ul>
@@ -48,11 +57,13 @@ ${h.link(request, ga.unitparameter)}
                 % if gloss.pos:
                 [${gloss.pos}]
                 % endif
-                ${h.link(request, gloss.unitparameter)}
+                <a href="${req.resource_url(gloss.unitparameter)}">${u.gloss(gloss.unitparameter.name)|n}</a>
             </li>
                 % endif
             % endfor
         </ul>
     </li>
-% endfor
+    % if loop.last:
 </ul>
+    % endif
+% endfor

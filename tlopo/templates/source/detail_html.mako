@@ -11,8 +11,12 @@ ${ctx.coins(request)|n}
 ${u.src_links(req, ctx)|n}
 
 <h3>References</h3>
+
+% for cid, sections in ctx.grouped_sections:
+    % if loop.first:
+<h4>Sections</h4>
 <ul>
-    % for cid, sections in ctx.grouped_sections:
+    % endif
     <li>${chapters[cid].name}
         <ul>
         % for sid, title in sections:
@@ -20,8 +24,25 @@ ${u.src_links(req, ctx)|n}
         % endfor
         </ul>
     </li>
-    % endfor
+    % if loop.last:
 </ul>
+    % endif
+% endfor
+
+% for word in words:
+% if loop.first:
+<h4>Words</h4>
+<ul>
+    % endif
+    <li>${h.link(req, word.language)}: <i>${h.link(req, word)}</i>
+        % for hg in word.unitvalues:
+        ${u.gloss(hg.unitparameter.name)|n}
+        % endfor
+    </li>
+    % if loop.last:
+</ul>
+% endif
+% endfor
 
 <%def name="sidebar()">
 <div class="well">
