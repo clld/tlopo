@@ -8,10 +8,10 @@ from clld.web.datatables.source import Sources, TypeCol
 from clld.db.models import common
 from clld.db.util import icontains, contains, get_distinct_values
 from clld.web.util.helpers import map_marker_img, icon, button, link
-from clld.web.util.htmllib import HTML
-
+from clld.web.util.htmllib import HTML, literal
 
 from tlopo import models
+from tlopo.util import md
 
 
 class DOICol(Col):
@@ -157,7 +157,7 @@ class FullGlossCol(Col):
                 if g.pos:
                     res.append('({}) '.format(g.pos))
                 if g.name:
-                    res.append(HTML.span(g.name, class_='gloss'))
+                    res.append(HTML.span(literal(md(g.name)), class_='gloss'))
                 i = -1
                 for i, ref in enumerate(g.references):
                     if i == 0:
