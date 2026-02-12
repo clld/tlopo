@@ -47,6 +47,11 @@ class VolCol(Col):
     def search(self, qs):
         return icontains(models.Chapter.volume, qs)
 
+
+class ChapterNameCol(LinkCol):
+    def order(self):
+        return models.Chapter.volume_num, models.Chapter.chapter_num
+
    
 class Chapters(datatables.Contributions):
     def get_options(self):
@@ -57,7 +62,7 @@ class Chapters(datatables.Contributions):
     def col_defs(self):
         return [
             VolCol(self, 'vol', model_col=models.Chapter.volume, choices=get_distinct_values(models.Chapter.volume)),
-            LinkCol(self, 'name'),
+            ChapterNameCol(self, 'name'),
             ContributorsCol(self, 'contributor'),
         ]
 

@@ -1,3 +1,5 @@
+import os
+import pathlib
 import itertools
 import collections
 import urllib.parse
@@ -6,11 +8,13 @@ from csvw.dsv import reader
 from pycldf import Sources
 from clldutils.misc import slug
 from clldutils.color import qualitative_colors
+from clldutils.jsonlib import load
 from clld.cliutil import Data, bibtex2source
 from clld.db.meta import DBSession
 from clld.db.models import common
 from clld.lib import bibtex
 from nameparser import HumanName
+from cldfgeojson.geojson import pacific_centered
 
 import tlopo
 from tlopo import models
@@ -39,6 +43,16 @@ def bb(region):
 
 def main(args):
     from pytlopo.util import variants
+
+    #
+    # FIXME: get location of wurm&hattori dataset. Read GeoJSONs and index by cldf:languageReference
+    #
+    lg2f, i = {}, 0
+    wh = pathlib.Path(os.path.expanduser('~')) / 'projects' / 'glottography'/ 'wurm1981pacific'
+    for t in ['languages', 'dialects']:
+        for f in load(wh / 'cldf' / '{}.geojson'.format(t))['features']:
+            i += 1
+            lg2f[f['properties']['cldf:languageReference']] = f
 
     data = Data()
     ds = data.add(
@@ -118,6 +132,7 @@ def main(args):
                 glottolog_name=lang['Glottolog_Name'],
                 note=lang['Note'],
                 alternative_names=alt_names,
+                jsondata={'shape': pacific_centered(lg2f[lang['Glottocode']]['geometry'])} if lang['Glottocode'] in lg2f else {}
             )
 
     prev = None
@@ -133,6 +148,7 @@ def main(args):
                 'vol{}'.format(row['Volume_Number']),
                 'chapter{}.html'.format(row['ID'].split('-')[-1])).read_text(encoding='utf8'),
             volume_num=row['Volume_Number'],
+            chapter_num=int(row['ID'].split('-')[-1]),
             volume=row['Volume'],
             jsondata=dict(toc=row['Table_Of_Contents'], refs=row['Source']),
         )
@@ -159,6 +175,8 @@ def main(args):
                 data['Ref'][sid].jsondata['sections'].append((row['ID'], sec, secs[sec]))
 
     for row in args.cldf.iter_rows('taxa.csv'):
+        if not row['ID']:
+            continue
         t = data.add(
             models.Taxon, row['ID'],
             id=row['ID'],
@@ -227,7 +245,8 @@ def main(args):
                     source=data['Ref'][sid]))
 
     for fid, tid in w2t:
-        DBSession.add(models.WordTaxon(word=data['Word'][fid], taxon=data['Taxon'][tid]))
+        if tid in data['Taxon']:
+            DBSession.add(models.WordTaxon(word=data['Word'][fid], taxon=data['Taxon'][tid]))
 
     names = set()
     for row in args.cldf.iter_rows('cognatesetreferences.csv'):
@@ -244,7 +263,8 @@ def main(args):
             fragment=row['ID'],
         )
         for taxon in taxa:
-            DBSession.add(models.TaxonCognateset(taxon=data['Taxon'][taxon], cognateset=cs))
+            if taxon in data['Taxon']:
+                DBSession.add(models.TaxonCognateset(taxon=data['Taxon'][taxon], cognateset=cs))
         refid = 0
         for lid, fids in itertools.groupby(sorted(row['Form_IDs']), lambda i: i.split('-')[0]):
             # Create ValueSet and Cognate

@@ -1,3 +1,5 @@
+from clld.db.meta import DBSession
+from clld.db.models import common
 from clld.web.maps import ParameterMap, Map, Layer, Legend
 from clld.web.util.helpers import JS
 from clld.web.util.htmllib import HTML, literal
@@ -7,6 +9,23 @@ from tlopo import models
 
 
 class LanguagesMap(Map):
+    def get_options(self):
+        return {
+            'max_zoom': 10,
+            'icon_size': 10,
+        }
+
+    def get_layers(self):
+        yield from Map.get_layers(self)
+        yield Layer(
+            'polys',
+            'polys',
+            dict(
+                type='FeatureCollection',
+                features=[
+                    dict(type='Feature', properties=dict(title=l.name), geometry=l.jsondata['shape'])
+                    for l in DBSession.query(common.Language) if 'shape' in l.jsondata]))
+
     def get_legends(self):
         def val(label, ico):
             return HTML.label(

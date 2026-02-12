@@ -51,3 +51,20 @@ TLOPO.map_with_taxa_on_init = function (map) {
         layers,
         {collapsed: false}).addTo(map.map);
 }
+
+TLOPO.style = function(feature) {
+    return {
+            'color': '#000',
+            'weight': 1,
+            'opacity': 0.3,
+            'fillOpacity': 0.3,
+            'fillColor': feature.properties.fill
+    }
+};
+
+CLLD.LayerOptions.polys = {
+    style: TLOPO.style,
+    onEachFeature: function(feature, layer) {
+        layer.bindTooltip(feature.properties.title);
+    }
+};
