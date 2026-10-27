@@ -11,11 +11,11 @@
     </div>
 </%def>
 
-<h2>Welcome to Lexicon of Proto Oceanic</h2>
+<h2>The lexicon of Proto Oceanic: The culture and environment of ancestral Oceanic society</h2>
 
 <p class="lead">
     The lexicon of Proto Oceanic is a series of six volumes reconstructing the lexicon of Proto Oceanic,
-    the language ancestral to most of the Austornesian languages of Melanesia, Polynesia and Micronesia.
+    the language ancestral to most of the Austronesian languages of Melanesia, Polynesia and Micronesia.
     Each volume presents a series of essays that draw on the features identified by the reconstructions
     to describe the way of life and environment of Proto Oceanic speakers, using relevant background
     material including archaeological, ethnographic and bio-geographical information. The volumes are

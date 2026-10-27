@@ -172,7 +172,8 @@ def main(args):
 
         for sid, sections in row['Source_To_Sections'].items():
             for sec in sections:
-                data['Ref'][sid].jsondata['sections'].append((row['ID'], sec, secs[sec]))
+                if sec:
+                    data['Ref'][sid].jsondata['sections'].append((row['ID'], sec, secs[sec]))
 
     for row in args.cldf.iter_rows('taxa.csv'):
         if not row['ID']:

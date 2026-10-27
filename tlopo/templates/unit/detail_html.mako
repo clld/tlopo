@@ -49,7 +49,7 @@
 <ul>
     % endif
     <li>
-        ${h.link(request, ref.chapter, url_kw=dict(_anchor=ref.fragment))}
+        ${u.chapter_link(request, ref.chapter, fragment=ref.fragment)}
         <ul>
             % for gloss in ctx.unitvalues:
                 % if gloss.id in ref.gloss_ids.split():

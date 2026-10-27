@@ -7,6 +7,7 @@ from clldutils.html import literal
 from markdown import markdown
 
 from clld.web.util.helpers import link
+from clld.web.util.helpers import icon as bootstrap_icon
 from clld.web.util.htmllib import HTML
 from clld.db.models import common
 from clld.db.meta import DBSession
@@ -20,6 +21,18 @@ assert json and markdown and link
 
 
 md = models.md
+
+
+def chapter_link(req, chapter, fragment=None):
+    url_kw = {}
+    if fragment:
+        url_kw['_anchor'] = fragment
+    return link(
+        req,
+        chapter,
+        url_kw=url_kw,
+        title=chapter.name,
+        label=HTML.div(chapter.name, bootstrap_icon('book')))
 
 
 def gloss(g):
