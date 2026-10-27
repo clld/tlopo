@@ -3,8 +3,9 @@
 ```shell
 git clone https://github.com/clld/tlopo
 git clone https://github.com/lexibank/tlopo tlopo-cldf
+git clone --depth 1 https://github.com/glottography/wurm1981pacific
 cd tlopo-cldf
-git checkout v0.1
+git checkout v0.1.1
 cd ../tlopo
 pip install -e .[test]
 ```

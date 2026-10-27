@@ -22,8 +22,10 @@ setup(
         'clld',
         'newick',
         'clldmpg',
-
-],
+        'psycopg2',
+        'pycldf',
+        'cldfgeojson',
+    ],
 extras_require={
         'dev': ['flake8', 'waitress'],
         'test': [
