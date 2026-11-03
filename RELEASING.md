@@ -2,11 +2,9 @@
 
 ```shell
 git clone https://github.com/clld/tlopo
-git clone https://github.com/lexibank/tlopo tlopo-cldf
-git clone --depth 1 https://github.com/glottography/wurm1981pacific
-cd tlopo-cldf
-git checkout v0.1.1
-cd ../tlopo
+git clone --branch v0.1.1 --depth 1 https://github.com/lexibank/tlopo tlopo-cldf
+git clone --branch v2.0 --depth 1 https://github.com/glottography/wurm1981pacific
+cd tlopo
 pip install -e .[test]
 ```
 
@@ -27,8 +25,6 @@ pip freeze > requirements.txt
 
 Store a db dump:
 ```shell
-pg_dump -xO tlopo > tlopo.sql
-zip tlopo.sql.zip tlopo.sql
-rm tlopo.sql
+pg_dump -xO --compress gzip:9 tlopo > tlopo.sql.gz
 ```
 
