@@ -36,7 +36,7 @@ def chapter_link(req, chapter, fragment=None):
 
 
 def gloss(g):
-    return HTML.span(literal(md(g)), class_='gloss')
+    return HTML.span(literal(md(g or '')), class_='gloss')
 
 
 def tree(request, languages, remove_redundant_nodes=True):
