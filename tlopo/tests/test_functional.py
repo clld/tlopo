@@ -1,2 +1,10 @@
 def test_home(app):
     app.get_html('/', status=200)
+    app.get_html('/contributions/1-1', status=200)
+    app.get_html('/parameters/1-4-2-1-68-POc-kuron-a', status=200)
+    app.get_html('/languages/drehet', status=200)
+    app.get_html('/languages', status=200)
+    app.get_html('/taxons', status=200)
+    app.get_html('/taxons/8312665', status=200)
+    app.get_html('/languages/phylogeny', status=200)
+    app.get_html('/sources/Adelaar2004', status=200)

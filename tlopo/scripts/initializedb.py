@@ -1,10 +1,8 @@
-import os
 import pathlib
 import itertools
 import collections
 import urllib.parse
 
-from csvw.dsv import reader
 from pycldf import Sources
 from clldutils.misc import slug
 from clldutils.color import qualitative_colors
@@ -13,7 +11,7 @@ from clld.cliutil import Data, bibtex2source
 from clld.db.meta import DBSession
 from clld.db.models import common
 from clld.lib import bibtex
-from nameparser import HumanName
+import nameparser
 from cldfgeojson.geojson import pacific_centered
 
 import tlopo
@@ -103,7 +101,10 @@ def main(args):
     # FIXME: get location of wurm&hattori dataset. Read GeoJSONs and index by cldf:languageReference
     #
     lg2f, i = {}, 0
-    wh = args.cldf.directory.parent.parent / 'wurm1981pacific'
+    if args.assume_yes:
+        wh = pathlib.Path('wurm1981pacific')
+    else:
+        wh = args.cldf.directory.parent.parent.parent / 'glottography' / 'wurm1981pacific'
     for t in ['languages', 'dialects']:
         for f in load(wh / 'cldf' / '{}.geojson'.format(t))['features']:
             i += 1
@@ -131,11 +132,12 @@ def main(args):
     editors, seen, contribs = ['rossm', 'pawleya', 'osmondm'], set(), collections.defaultdict(list)
     for chapter in args.cldf.iter_rows('ContributionTable'):
         for name in chapter['Contributor'].split(' and '):
-            cid = HumanName(name.strip()).last.lower() + HumanName(name.strip()).first.lower()[0]
+            hname = nameparser.parse(name.strip())
+            cid = hname.family.lower() + hname.given.lower()[0]
             if cid not in seen:
                 co = data.add(common.Contributor, cid, id=cid, name=name.strip())
                 if cid in editors:
-                    common.Editor(dataset=ds, ord=editors.index(cid), contributor=co)
+                    DBSession.add(common.Editor(dataset=ds, ord=editors.index(cid), contributor=co))
                 seen.add(cid)
             contribs[chapter['ID']].append(cid)
 

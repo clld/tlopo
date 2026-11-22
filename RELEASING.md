@@ -11,7 +11,7 @@ pip install -e .[test]
 recreate app db:
 
 ```shell
-clld initdb development.ini --cldf ../tlopo-cldf/cldf/cldf-metadata.json
+clld initdb development.ini --cldf ../../lexibank/tlopo/cldf/cldf-metadata.json
 ```
 
 ```shell
